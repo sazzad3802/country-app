@@ -42,7 +42,7 @@ class CustomCountriesController extends GetxController {
       fetchCustomCountries();
     }
   }
-git
+
   void deleteItem(CustomCountry cc) async {
     GeneralResponse generalResponse = await _countryRepo.deleteCountry(cc.gid!);
     if (generalResponse.statusCode == 200) {
