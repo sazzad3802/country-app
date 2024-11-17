@@ -23,6 +23,6 @@ class DashboardController extends GetxController {
   }
 
   void showCustomCountries() async {
-    // Get.offAndToNamed(Routes.REGISTRATION);
+    Get.toNamed(Routes.CUSTOM_COUNTRIES_VIEW);
   }
 }

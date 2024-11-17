@@ -1,7 +1,11 @@
+import 'package:country_app/app/modules/add_edit_countries/bindings/add_edit_countries_binding.dart';
+import 'package:country_app/app/modules/add_edit_countries/views/add_edit_countries_view.dart';
 import 'package:country_app/app/modules/cities_screen/bindings/cities_binding.dart';
 import 'package:country_app/app/modules/cities_screen/views/cities_view.dart';
 import 'package:country_app/app/modules/country_screen/bindings/country_binding.dart';
 import 'package:country_app/app/modules/country_screen/views/country_view.dart';
+import 'package:country_app/app/modules/custom_countries/bindings/custom_countries_binding.dart';
+import 'package:country_app/app/modules/custom_countries/views/custom_countries_view.dart';
 import 'package:country_app/app/modules/dashboard/bindings/dashboard_binding.dart';
 import 'package:country_app/app/modules/dashboard/views/dashboard_view.dart';
 import 'package:country_app/app/modules/login/bindings/login_binding.dart';
@@ -18,7 +22,7 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.COUNTRY_VIEW;
+  static const INITIAL = Routes.DASHBOARD;
 
   static final routes = [
     GetPage(
@@ -50,6 +54,16 @@ class AppPages {
       name: _Paths.CITY_VIEW,
       page: () => CityView(),
       binding: CityBinding(),
+    ),
+    GetPage(
+      name: _Paths.CUSTOM_COUNTRIES_VIEW,
+      page: () => CustomCountriesView(),
+      binding: CustomCountriesBinding(),
+    ),
+    GetPage(
+      name: _Paths.ADD_EDIT_COUNTRIES_VIEW,
+      page: () => AddEditCountriesView(),
+      binding: AddEditCountriesBinding(),
     ),
   ];
 }

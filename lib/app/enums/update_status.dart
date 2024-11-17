@@ -1,0 +1,1 @@
+enum UpdateStatusEnum { Update, Add }

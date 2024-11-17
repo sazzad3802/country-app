@@ -6,4 +6,5 @@ class AppString {
   static const String countryCode = "countryCode";
 
   static const String regionObj = "regionObject";
+  static const String customCountryObj = "customCountryObject";
 }

@@ -1,5 +1,4 @@
 part of 'app_pages.dart';
-// DO NOT EDIT. This is code generated via package:get_cli/get_cli.dart
 
 abstract class Routes {
   Routes._();
@@ -9,6 +8,8 @@ abstract class Routes {
   static const COUNTRY_VIEW = _Paths.COUNTRY_VIEW;
   static const REGION_VIEW = _Paths.REGION_VIEW;
   static const CITY_VIEW = _Paths.CITY_VIEW;
+  static const CUSTOM_COUNTRIES_VIEW = _Paths.CUSTOM_COUNTRIES_VIEW;
+  static const ADD_EDIT_COUNTRIES_VIEW = _Paths.ADD_EDIT_COUNTRIES_VIEW;
 }
 
 abstract class _Paths {
@@ -19,4 +20,6 @@ abstract class _Paths {
   static const COUNTRY_VIEW = '/country_view';
   static const REGION_VIEW = '/region_view';
   static const CITY_VIEW = '/city_view';
+  static const CUSTOM_COUNTRIES_VIEW = '/custom_countries_view';
+  static const ADD_EDIT_COUNTRIES_VIEW = '/add_edit_countries_view';
 }
