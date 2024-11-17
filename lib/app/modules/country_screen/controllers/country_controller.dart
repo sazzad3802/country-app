@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:country_app/app/core/values/app_string.dart';
 import 'package:country_app/app/data/repository/country_repo.dart';
+import 'package:country_app/app/enums/sort_status.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -13,6 +15,7 @@ import '../../../routes/app_pages.dart';
 
 class CountryController extends GetxController {
   var countries = <Country>[].obs;
+  var allCountries = <Country>[];
   var selectedCurrency = ''.obs;
   var totalCount = 0.obs;
   final CountryRepo _countryRepo = Get.find();
@@ -21,6 +24,15 @@ class CountryController extends GetxController {
 
   var offset = 0.obs;
   var hasMore = true.obs;
+
+  var rxSelectedSortStatus = SortStatusEnum.Ascending.name.obs;
+
+  var rxSortList = <String>[
+    SortStatusEnum.Ascending.name,
+    SortStatusEnum.Descending.name
+  ].obs;
+
+  var searchController = TextEditingController().obs;
 
   @override
   void onInit() {
@@ -41,10 +53,7 @@ class CountryController extends GetxController {
     if (selectedCurrency.value.isNotEmpty) {
       if (!rxLoading.value && hasMore.value) {
         rxLoading.value = true;
-        if (findCountry) {
-          countries.value = [];
-          offset.value = 0;
-        }
+        if (findCountry) resetFilters();
         final response = await _countryRepo.getAllCountries(
           selectedCurrency.value,
           offset.value,
@@ -52,10 +61,12 @@ class CountryController extends GetxController {
         if (response.data is CountriesApiResponse) {
           List<Country> newEntries = response.data.countryList;
           if (isLoadMore) {
+            allCountries.addAll(newEntries);
             countries.addAll(newEntries);
           } else {
             countries.value = newEntries;
           }
+          applyFilters();
           totalCount.value = response.data.metadata.totalCount;
           offset.value += newEntries.length;
 
@@ -70,6 +81,12 @@ class CountryController extends GetxController {
     }
   }
 
+  void gotoRegion(Country country) async {
+    String countryJson = jsonEncode(country.toJson());
+    await Get.toNamed(Routes.REGION_VIEW,
+        arguments: {AppString.countryObj: countryJson});
+  }
+
   void setCurrency(String? value) {
     if (selectedCurrency.value.isEmpty) {
       selectedCurrency.value = value!;
@@ -79,31 +96,49 @@ class CountryController extends GetxController {
     }
   }
 
-  @override
-  void onClose() {
-    super.onClose();
+  void setSort(String value) {
+    if (value != rxSelectedSortStatus.value) {
+      rxSelectedSortStatus.value = value;
+    }
   }
 
-  void applyFilters({
-    bool ascending = true,
-    String keyword = '',
-  }) {
-    var filteredList = countries.where((city) {
-      return city.name.toLowerCase().contains(keyword.toLowerCase());
-    }).toList();
+  void setSearch(String value) {
+    searchController.value.text = value;
+  }
 
-    if (!ascending) {
-      filteredList.sort((a, b) => b.name.compareTo(a.name));
+  Future<void> sortList() async {
+    if (rxSelectedSortStatus.value == SortStatusEnum.Descending.name) {
+      countries.sort((a, b) => b.name.compareTo(a.name));
     } else {
-      filteredList.sort((a, b) => a.name.compareTo(b.name));
+      countries.sort((a, b) => a.name.compareTo(b.name));
     }
+  }
 
+  Future<void> searchList() async {
+    final tempList = [...allCountries];
+    var filteredList = tempList.where((country) {
+      return country.name
+          .toLowerCase()
+          .contains(searchController.value.text.toLowerCase());
+    }).toList();
     countries.value = filteredList;
   }
 
-  void gotoRegion(Country country) async {
-    String countryJson = jsonEncode(country.toJson());
-    await Get.toNamed(Routes.REGION_VIEW,
-        arguments: {AppString.countryObj: countryJson});
+  void applyFilters() async {
+    await searchList();
+    await sortList();
+  }
+
+  void resetFilters() async {
+    allCountries = [];
+    countries.value = [];
+    offset.value = 0;
+    searchController.value.text = "";
+    rxSelectedSortStatus.value = SortStatusEnum.Ascending.name;
+  }
+
+  @override
+  void onClose() {
+    super.onClose();
   }
 }

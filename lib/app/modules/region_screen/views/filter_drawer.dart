@@ -1,7 +1,11 @@
 import 'package:country_app/app/extensions/space_extension.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../core/base/base_view.dart';
+import '../../../core/values/app_colors.dart';
+import '../../../core/widgets/custom_button.dart';
+import '../../../enums/sort_status.dart';
 import '../controllers/region_controller.dart';
 
 class FilterDrawer extends BaseView<RegionController> {
@@ -15,32 +19,51 @@ class FilterDrawer extends BaseView<RegionController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             50.height,
-            TextField(
-              decoration: InputDecoration(labelText: "Keyword"),
-              onChanged: (value) {
-                // Store value in controller if needed
-              },
+            Obx(
+              () => TextField(
+                decoration: const InputDecoration(labelText: "Keyword"),
+                controller: controller.searchController.value,
+                onChanged: (value) => controller.setSearch(value),
+              ),
             ),
             20.height,
-            DropdownButton<String>(
-              value: "Ascending",
-              onChanged: (value) {
-                // Update sorting direction
-              },
-              items: [
-                DropdownMenuItem(value: "Ascending", child: Text("Ascending")),
-                DropdownMenuItem(
-                    value: "Descending", child: Text("Descending")),
-              ],
+            Obx(
+              () => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                width: wp(50),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: controller.rxSelectedSortStatus.value,
+                    items: controller.rxSortList.map((entry) {
+                      return DropdownMenuItem<String>(
+                        value: entry,
+                        child: Text(entry),
+                      );
+                    }).toList(),
+                    onChanged: (value) => controller.setSort(value!),
+                    isExpanded: true,
+                  ),
+                ),
+              ),
             ),
             20.height,
-            ElevatedButton(
-              onPressed: () {
-                controller.applyFilters();
-                Navigator.pop(context); // Close the drawer
-              },
-              child: Text("Apply"),
-            ),
+            CustomButton(
+                text: 'Apply',
+                textSize: 16,
+                textColor: AppColor.white,
+                bg: AppColor.primary.withOpacity(0.5),
+                borderColor: AppColor.primary.withOpacity(0.5),
+                tap: () {
+                  controller.applyFilters();
+                  Get.back();
+                },
+                width: wp(30),
+                height: 30),
+            10.height,
           ],
         ),
       ),

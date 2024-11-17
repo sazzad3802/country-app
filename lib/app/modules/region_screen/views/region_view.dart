@@ -5,8 +5,8 @@ import 'package:get/get.dart';
 import '../../../core/base/base_view.dart';
 import '../../../core/values/app_colors.dart';
 import '../../../core/widgets/custom_button.dart';
-import '../../cities_screen/views/filter_drawer.dart';
 import '../controllers/region_controller.dart';
+import 'filter_drawer.dart';
 
 class RegionView extends BaseView<RegionController> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();

@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:country_app/app/enums/sort_type.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 
@@ -8,9 +11,11 @@ import '../../../data/api/city_api_response.dart';
 import '../../../data/models/city.dart';
 import '../../../data/models/region.dart';
 import '../../../data/repository/country_repo.dart';
+import '../../../enums/sort_status.dart';
 
 class CityController extends GetxController {
   var cities = <City>[].obs;
+  var allCities = <City>[];
   var expandedCities = <int, bool>{}.obs;
   var collapseTimers = <int, Timer>{}.obs;
   var totalCount = 0.obs;
@@ -24,6 +29,20 @@ class CityController extends GetxController {
   var offset = 0.obs;
   var hasMore = true.obs;
 
+  var rxSelectedSortStatus = SortStatusEnum.Ascending.name.obs;
+  var rxSelectedSortType = SortTypeEnum.Name.name.obs;
+
+  var rxSortList = <String>[
+    SortStatusEnum.Ascending.name,
+    SortStatusEnum.Descending.name
+  ].obs;
+
+  var rxSortTypeList =
+      <String>[SortTypeEnum.Name.name, SortTypeEnum.Population.name].obs;
+
+  var searchController = TextEditingController().obs;
+  var minPopulationController = TextEditingController(text: "0").obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -31,9 +50,7 @@ class CityController extends GetxController {
     parentRegion = Region.fromJson(jsonDecode(regionJson));
     regionCode = parentRegion.isoCode;
     countryCode = Get.arguments[AppString.countryCode];
-    // countryCode = "BD";
-    // regionCode = "A";
-    fetchCities();
+    fetchCities(isLoadMore: true);
   }
 
   void fetchCities({bool isLoadMore = false}) async {
@@ -47,10 +64,12 @@ class CityController extends GetxController {
       if (response.data is CityApiResponse) {
         List<City> newEntries = response.data.citiList;
         if (isLoadMore) {
+          allCities.addAll(newEntries);
           cities.addAll(newEntries);
         } else {
           cities.value = newEntries;
         }
+        applyFilters();
         totalCount.value = response.data.metadata.totalCount;
         offset.value += newEntries.length;
 
@@ -86,31 +105,69 @@ class CityController extends GetxController {
     super.onClose();
   }
 
-  void applyFilters({
-    bool ascending = true,
-    String keyword = '',
-    int? limit,
-    String type = 'CITY',
-    String sortBy = 'name',
-    int minPopulation = 0,
-  }) {
-    var filteredList = cities.where((city) {
-      return city.type == type &&
-          city.population >= minPopulation &&
-          city.name.toLowerCase().contains(keyword.toLowerCase());
-    }).toList();
+  void setSort(String value) {
+    if (value != rxSelectedSortStatus.value) {
+      rxSelectedSortStatus.value = value;
+    }
+  }
 
-    if (!ascending) {
-      filteredList.sort((a, b) => b.name.compareTo(a.name));
+  void setSortType(String value) {
+    if (value != rxSelectedSortType.value) {
+      rxSelectedSortType.value = value;
+    }
+  }
+
+  void setSearch(String value) {
+    searchController.value.text = value;
+  }
+
+  void setMinPopulation(String value) {
+    minPopulationController.value.text = value;
+  }
+
+  Future<void> sortList() async {
+    var myParam = rxSelectedSortType.value == SortTypeEnum.Name.name
+        ? SortTypeEnum.Name.name.toLowerCase()
+        : SortTypeEnum.Population.name.toLowerCase();
+    if (rxSelectedSortStatus.value == SortStatusEnum.Descending.name) {
+      cities.sort((a, b) => b.toJson()[myParam].compareTo(a.toJson()[myParam]));
     } else {
-      filteredList.sort((a, b) => a.name.compareTo(b.name));
+      cities.sort((a, b) => a.toJson()[myParam].compareTo(b.toJson()[myParam]));
     }
+  }
 
-    if (limit != null && limit > 0) {
-      filteredList = filteredList.take(limit).toList();
-    }
-
+  Future<void> searchList() async {
+    final tempList = [...allCities];
+    var filteredList = tempList.where((city) {
+      return city.name
+          .toLowerCase()
+          .contains(searchController.value.text.toLowerCase());
+    }).toList();
     cities.value = filteredList;
-    update(['cityList']);
+  }
+
+  Future<void> searchMinPopulation() async {
+    final tempList = [...cities];
+    var filteredList = tempList.where((city) {
+      try {
+        return city.population >
+            double.parse(minPopulationController.value.text).round();
+      } on Exception catch (e) {
+        try {
+          return city.population >
+              int.parse(minPopulationController.value.text);
+        } on Exception catch (e) {
+          Fluttertoast.showToast(msg: "parsing error");
+          return throw ("parsing error");
+        }
+      }
+    }).toList();
+    cities.value = filteredList;
+  }
+
+  void applyFilters() async {
+    await searchList();
+    await searchMinPopulation();
+    await sortList();
   }
 }

@@ -9,11 +9,13 @@ import 'package:get/get.dart';
 import '../../../data/models/country.dart';
 import '../../../data/models/region.dart';
 import '../../../data/repository/country_repo.dart';
+import '../../../enums/sort_status.dart';
 import '../../../network/apis.dart';
 import '../../../routes/app_pages.dart';
 
 class RegionController extends GetxController {
   var regions = <Region>[].obs;
+  var allRegions = <Region>[];
   late Country parentCountry;
   String countryCode = "";
   var totalCount = 0.obs;
@@ -23,14 +25,22 @@ class RegionController extends GetxController {
   var offset = 0.obs;
   var hasMore = true.obs;
 
+  var rxSelectedSortStatus = SortStatusEnum.Ascending.name.obs;
+
+  var rxSortList = <String>[
+    SortStatusEnum.Ascending.name,
+    SortStatusEnum.Descending.name
+  ].obs;
+
+  var searchController = TextEditingController().obs;
+
   @override
   void onInit() {
     super.onInit();
     var countryJson = Get.arguments[AppString.countryObj];
     parentCountry = Country.fromJson(jsonDecode(countryJson));
     countryCode = parentCountry.code;
-    // countryCode = "BD";
-    fetchRegions();
+    fetchRegions(isLoadMore: true);
   }
 
   void fetchRegions({bool isLoadMore = false}) async {
@@ -43,10 +53,12 @@ class RegionController extends GetxController {
       if (response.data is RegionsApiResponse) {
         List<Region> newEntries = response.data.regionList;
         if (isLoadMore) {
+          allRegions.addAll(newEntries);
           regions.addAll(newEntries);
         } else {
           regions.value = newEntries;
         }
+        applyFilters();
         totalCount.value = response.data.metadata.totalCount;
         offset.value += newEntries.length;
 
@@ -63,28 +75,44 @@ class RegionController extends GetxController {
     super.onClose();
   }
 
-  void applyFilters({
-    bool ascending = true,
-    String keyword = '',
-  }) {
-    var filteredList = regions.where((city) {
-      return city.name.toLowerCase().contains(keyword.toLowerCase());
-    }).toList();
-
-    if (!ascending) {
-      filteredList.sort((a, b) => b.name.compareTo(a.name));
-    } else {
-      filteredList.sort((a, b) => a.name.compareTo(b.name));
-    }
-
-    regions.value = filteredList;
-  }
-
   void gotoCity(Region region) async {
     String regionJson = jsonEncode(region.toJson());
     await Get.toNamed(Routes.CITY_VIEW, arguments: {
       AppString.regionObj: regionJson,
       AppString.countryCode: countryCode
     });
+  }
+
+  void setSort(String value) {
+    if (value != rxSelectedSortStatus.value) {
+      rxSelectedSortStatus.value = value;
+    }
+  }
+
+  void setSearch(String value) {
+    searchController.value.text = value;
+  }
+
+  Future<void> sortList() async {
+    if (rxSelectedSortStatus.value == SortStatusEnum.Descending.name) {
+      regions.sort((a, b) => b.name.compareTo(a.name));
+    } else {
+      regions.sort((a, b) => a.name.compareTo(b.name));
+    }
+  }
+
+  Future<void> searchList() async {
+    final tempList = [...allRegions];
+    var filteredList = tempList.where((country) {
+      return country.name
+          .toLowerCase()
+          .contains(searchController.value.text.toLowerCase());
+    }).toList();
+    regions.value = filteredList;
+  }
+
+  void applyFilters() async {
+    await searchList();
+    await sortList();
   }
 }
