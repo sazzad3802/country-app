@@ -34,7 +34,7 @@ android {
     productFlavors {
         development {
             dimension "default"
-            resValue "string", "app_name", "Menthol Dev"
+            resValue "string", "app_name", "Country App"
             versionNameSuffix ".dev"
         }
     }

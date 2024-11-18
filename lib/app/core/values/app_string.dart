@@ -1,5 +1,5 @@
 class AppString {
-  static const String appName = "Country Ap";
+  static const String appName = "Country App";
   static const String baseURL = "https://wft-geo-db.p.rapidapi.com/v1/geo";
 
   static const String countryObj = "countryObject";

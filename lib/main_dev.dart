@@ -11,17 +11,16 @@ import 'app/data/database/shared_pref.dart';
 import 'app/routes/app_pages.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await SharedPref.init();
+
   AppConfig.create(
     appName: AppString.appName,
     baseUrl: AppString.baseURL,
     primaryColor: Colors.yellow,
     flavor: Flavor.development,
   );
-
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  final dbFolder = await getApplicationDocumentsDirectory();
-  await SharedPref.init();
 
   runApp(
     GetMaterialApp(

@@ -43,12 +43,12 @@ class LoginController extends GetxController {
   void login() async {
     if (formKey.currentState != null) {
       if (formKey.currentState!.validate()) {
-        Get.offAndToNamed(Routes.DASHBOARD);
+        Get.toNamed(Routes.DASHBOARD);
       }
     }
   }
 
   void signup() async {
-    Get.offAndToNamed(Routes.REGISTRATION);
+    Get.toNamed(Routes.REGISTRATION);
   }
 }
